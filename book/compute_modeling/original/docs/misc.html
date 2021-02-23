@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>その他</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">『行動データの計算論モデリング』</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">トップ</a>
+</li>
+<li>
+  <a href="code.html">Rコードのリスト</a>
+</li>
+<li>
+  <a href="errata.html">正誤表</a>
+</li>
+<li>
+  <a href="misc.html">その他</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">その他</h1>
+
+</div>
+
+
+<div id="psytoolkit" class="section level2">
+<h2>PsyToolkitで２腕バンディット課題を作る</h2>
+<p>簡単にブラウザ上でオンライン実験課題を作ることができるPsyToolkitを用いて ２腕バンディット課題を作る方法を解説します。はじめに，最低限の処理だけを含めた プログラムを作成する方法を解説し，それから4段階にわけて，それを拡張する方法を解説します。</p>
+<ul>
+<li><p><a href="psytoolkit_minimum_2bandit.html">PsyToolkitで基本的な２腕バンディット課題を作る</a> : ベースとなる最も基本的な’experiment’, exp_2armed_banditを作成します。これを’survey’の中に埋め込んでブラウザから実験に参加できるようにする方法も解説します。</p>
+<ul>
+<li><p><a href="psytoolkit_2bandit_ext1.html">拡張1</a>: 画面遷移を入れる，選択肢の位置のランダマイズ</p></li>
+<li><p><a href="psytoolkit_2bandit_ext2.html">拡張2</a>: 試行ごとの報酬の有無をテーブルで指定する</p></li>
+<li><p><a href="psytoolkit_2bandit_ext3.html">拡張3</a>: 選択肢に画像ファイルを使う，簡単なアニメーションを使う</p></li>
+<li><p><a href="psytoolkit_2bandit_ext4.html">拡張4</a>: 入力デバイスをマウスではなくキーボードにする，教示文を呈示する</p></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div class="section level2">
+<h2>データ分析</h2>
+<ul>
+<li><a href="logistic_analysis_fixed_effects.html">選択履歴・報酬履歴を説明変数としたロジスティック回帰 (固定効果分析)</a></li>
+</ul>
+<hr />
+</div>
+<div id="tips" class="section level2">
+<h2>Tips</h2>
+<div id="map" class="section level4">
+<h4>最適化関数による最尤推定，MAP推定の途中で出るエラーを回避する</h4>
+<p>optim,solnpを用いた最適化の途中でエラーが出ることがあります。 一つの原因は，選択確率pAが推定の途中でちょうど1.0や0.0などの極端な値になってしまう ことによるものです。pA[t] = 1.0となったのに，その試行tではそれと異なる選択肢Bが 選ばれた，というデータが入ると，log(0)を計算することになり，対数尤度はマイナス無限大 (-Inf) となって， その後の処理でエラーになります。以下のようにしてpA[t]を計算した後に，その値を0.001から0.999などの 範囲に強制的に制限するとこの問題は回避できます。</p>
+<pre class="r"><code>        pA[t] &lt;- 1/(1+exp(-beta * (Q[1,t] - Q[2,t])))
+        
+        # pA[t]を0.001から0.999の範囲におさめる
+        if (pA[t] &lt; 0.001) pA[t] &lt;- 0.001
+        if (pA[t] &gt; 0.999) pA[t] &lt;- 0.999
+        
+        ll &lt;- ll + (c[t] == 1) * log(pA[t]) + (c[t] == 2) * log(1-pA[t])</code></pre>
+<p>上の二つのif文は，以下のようにも書けます。</p>
+<pre class="r"><code>        pA[t] &lt;- max( min(pA[t], 0.999), 0.001)</code></pre>
+<p>このようなことをしたら推定結果に影響してしまうのではないかと心配される方もいるかもしれませんが， 本来の選択確率がちょうど1または0になるということはあまりありません。 そのように極端な値をとるのは大抵は最適化の途中のプロセスにおいてのみであり，最終的な推定結果に影響することはあまりないと思います (少なくとも，対数尤度がマイナス無限大となるような推定値は最尤推定値やMAP推定値とはいえません)。</p>
+</div>
+<div class="section level4">
+<h4>パラメータの値を制限する</h4>
+<p>学習率αは本来0から1の間の範囲の値をとるべきものですが，最尤推定とはそれがマイナスになったり，1以上になったり することがあります。学習率のように定義域が決まっているパラメータについては，探索範囲を制限するとよいと思います。 Rの最適化関数optimであればmethodを“L-BFGS-B”とすることで，lower, upperというオプションで指定できます。solnpであれば，LB, UBというオプションで指定できます。 例えば，パラメータが学習率と逆温度の二つであり，それぞれ値の範囲を[0,1], [0,20]に制限したければ， 以下のようにします。</p>
+<pre class="r"><code>    res &lt;- optim(initparam, func_minimize,
+                  method = &quot;L-BFGS-B&quot;, 
+                  lower = c(0,0), upper = c(1,20), 
+                  hessian = FALSE, choice=c, reward=r)</code></pre>
+<p>solnpならLB = c(0,0), UB = c(1,20) を引数に追加します。 Matlabの場合は標準関数であるfminserchでは探索範囲の指定ができませんが，Optimization toolboxにあるfminconであればそれが可能です。詳細は各関数のマニュアルをご覧ください。</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
