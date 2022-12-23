@@ -2,7 +2,7 @@
 # Title   : Rによる多変量解析入門
 # Chapter : 3 重回帰分析
 # Theme   : 現象を説明・予測する統計モデルを作る
-# Date    : 2022/12/23
+# Date    : 2022/12/24
 # Page    : P68 - P91
 # URL     : https://www.ohmsha.co.jp/book/9784274222368/
 # ***********************************************************************************************
@@ -23,7 +23,7 @@
 # 6 標準偏回帰係数の算出
 # 7 質的変数を含む重回帰分析
 # 8 AICとBICによるモデル評価
-# 9 切片と編回帰係数の検定
+# 9 切片と偏回帰係数の検定
 
 
 # 0 準備 ------------------------------------------------------------------------
@@ -270,21 +270,38 @@ AIC(res4_1) - AIC(res4_2)
 
 # 9 切片と編回帰係数の検定 ------------------------------------------------------
 
-# t分布
-# --- 切片のp値
-pt(-0.6949209, 25) * 2
+# モデル構築
+res1 <- lm(client_n ~ location + facility + area + trainer, data = csdat)
 
-# 設備満足度の偏回帰係数のp値
-(1 - pt(3.075611, 25)) * 2
+# モデルサマリー
+df_coef <- res1 %>% tidy()
+
+# 切片のt値
+estimate <- df_coef %>% filter(term == "(Intercept)") %>% pull(estimate)
+std.error <- df_coef %>% filter(term == "(Intercept)") %>% pull(std.error)
+t_stat <- estimate / std.error
+
+# 切片のp値
+n_coef <- df_coef %>% filter(term != "(Intercept)") %>% nrow()
+df <- nrow(csdat) - n_coef - 1
+pt(t_stat, df) * 2
+
+# 設備満足度(facility)のp値
+t_stat <- df_coef %>% filter(term == "facility") %>% pull(statistic)
+n_coef <- df_coef %>% filter(term != "(Intercept)") %>% nrow()
+df <- nrow(csdat) - n_coef - 1
+(1 - pt(q = t_stat, df)) * 2
 
 # qtの算出
 # --- 下側確率0.025を与えるqtの算出
 # --- 上側確率0.025を与えるqtの算出
-qt(0.025, 25)
-qt(0.975, 25)
+ci_lower <- qt(0.025, 25)
+ci_upper <- qt(0.975, 25)
 
 # 信頼区間の算出
 # --- 信頼区間の下限
 # --- 信頼区間の上限
-21.640 - 2.059539 * 7.036
-21.640 + 2.059539 * 7.036
+estimate <- df_coef %>% filter(term == "facility") %>% pull(estimate)
+std.error <- df_coef %>% filter(term == "facility") %>% pull(std.error)
+estimate + ci_lower * std.error
+estimate + ci_upper * std.error
