@@ -221,48 +221,119 @@ res3.l <- lm(Burnout2 ~ Burnout1.c + Stress.c + Support.l + Stress.c * Support.l
 summary(res3.l)
 
 #信頼区間の算出
-confint(res3)
+res3 %>% confint()
 
 
-# 5 野球データの確認 -------------------------------------------------------------
+# 5 重回帰分析における変数選択 -----------------------------------------------------
 
+# ＜ポイント＞
+# - 線形回帰モデルは説明変数を増やせば決定係数は僅かずつ上昇する
+# - 同程度の説明力であれば説明変数は少ないほうがう良いモデル（AICなどの情報量基準に基づく）
+# - 変数選択手法は最良モデルを探るための伝統的な手法
+
+# ＜変数選択＞
+# - 変数増加法：切片のみのモデル(NULLモデル)を基準に、説明変数を1つずつ追加していく
+# - 変数減少法：全ての変数を含めたモデルから、説明変数を減少させていく
+# - ステップワイズ法：評価指標をもとに変数を増減させていく
+
+
+# 5-1 野球データの確認 ------------------------------------------
+
+# ＜データ概要＞
+# - プロ野球選手のセイバーメトリクスデータ
+
+# ＜データ項目＞
+# - 年俸：annual_salary
+# - 打数：strokes
+# - 安打：hit
+# - 打点：RBI
+# - 本塁打：homerun
+# - 四球：walk
+# - 死球：pitch
+# - 三振：strikeout
+# - 打率：bating_ratio
+
+# ＜分析目的＞
+# - プロ野球選手の年俸に影響の強い要素を明らかにする
+
+
+# データ確認
 df_bsb %>% print()
 df_bsb %>% glimpse()
 
+# データ可視化
+# --- 全体的に正の相関がある
+df_bsb %>% pairs.panels()
 
-# 6 重回帰分析における変数選択 -----------------------------------------------------
 
+# 5-2 MASS::stepAIC() ------------------------------------------
 
-# 6-1 MASS::stepAIC() ------------------------------------------
+# ＜ポイント＞
+# - ステップワイズ法で探索した最良モデルを返す
+#   --- プロセスはコンソールに表示されるだけ（プロセスをコンソール表示以上に知ることはできない）
+#   --- アウトプットは最良モデルのlmオブジェクト
+
 
 # ベースモデル
 # --- 切片のみのモデル
-base_model <- lm(annual_salary ~ 1, data = df_bsb)
+model_base <- lm(annual_salary ~ 1, data = df_bsb)
+
+# 比較用モデル
+# --- 全変数
+model_all <- lm(annual_salary ~ ., data = df_bsb)
 
 # ステップワイズ法による変数選択
-step_model_step1 <-
-  stepAIC(base_model,
+model_stepwise <-
+  stepAIC(model_base,
           direction = "both",
-          keep = TRUE,
+          trace = TRUE,
           scope = list(upper = ~strokes + hit + RBI + homerun + walk + pitch + strikeout + bating_ratio))
 
-# 最終的な変数選択の結果
-step_model_step1 %>% summary()
+# 結果確認
+model_stepwise %>% class()
+model_stepwise %>% summary()
+
+# モデルサマリー
+# --- 全変数モデルよりもステップワイズモデルの方がR2.adjやAICが高い
+# --- ステップワイズモデルは説明変数の削減と説明力改善(維持)に成功している
+list(Model_Null = model_base,
+     Model_All = model_all,
+     Model_Stepwise = model_stepwise) %>%
+  modelsummary(statistic = "{std.error}({statistic}){stars}")
 
 
-# 6-2 StepReg::stepwise() ------------------------------------------
+# 5-3 StepReg::stepwise() ------------------------------------------
 
-step_model_step2 <-
+# ＜ポイント＞
+# - StepReg::stepwise()はステップワイズの探索プロセスを事後的に検証することができる
+#   --- アウトプットは分析プロセス（lmオブジェクトではない）
+
+
+# モデル構築
+# --- ステップワイズ
+model_stepwise2 <-
   stepwise(formula = annual_salary ~ strokes + hit + RBI + homerun + walk + pitch + strikeout + bating_ratio,
            data = df_bsb,
            selection = "score",
            select = "AIC")
 
+# オブジェクト確認
+model_stepwise2 %>% class()
+model_stepwise2 %>% glimpse()
+model_stepwise2 %>% map(class)
+
+# サマリー
+model_stepwise2 %>% print()
+
 # 最終的な変数選択の結果
-step_model_step2$`Coefficients of the Selected Variables`
-step_model_step2$`Selected Varaibles`
-step_model_step2$`Summary of Parameters`
-step_model_step2$`Variables Type`
+model_stepwise2$`Coefficients of the Selected Variables`
+model_stepwise2$`Selected Varaibles`
+model_stepwise2$`Summary of Parameters`
+model_stepwise2$`Variables Type`
 
 # 探索プロセス
-step_model_step2$`Process of Selection`
+model_stepwise2$`Process of Selection`
+
+# 最良モデルの作成
+model_stepwise2$`Selected Varaibles` %>%
+  as.formula()
