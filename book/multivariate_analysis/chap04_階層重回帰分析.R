@@ -2,7 +2,7 @@
 # Title   : Rによる多変量解析入門
 # Chapter : 4 階層重回帰分析
 # Theme   : 現象を説明・予測する統計モデルを作る(2)
-# Date    : 2022/12/24
+# Date    : 2023/1/19
 # Page    : P92 - P113
 # URL     : https://www.ohmsha.co.jp/book/9784274222368/
 # ***********************************************************************************************
@@ -10,7 +10,8 @@
 
 # ＜概要＞
 # - 階層的重回帰分析によって交互作用効果を検討する（階層線形モデルとは別議論）
-# - 交互作用効果が有意であるときに利用される単純傾斜分析と変数選択についても確認する
+# - 交互作用効果が有意であるときに利用される｢単純傾斜分析｣と｢変数選択｣についても確認する
+#   --- 前半では、モデル比較のためのツール(Anova分析、AIC)などを議論する
 
 
 # ＜目次＞
@@ -36,7 +37,7 @@ library(StepReg)
 
 # コンフリクト解消
 conflict_prefer("select", "dplyr", quiet = TRUE)
-
+conflict_prefer("filter", "dplyr", quiet = TRUE)
 
 # データの読み込み
 df_sts <- read_csv("csv/chap04/stress.csv")
@@ -52,10 +53,10 @@ df_bsb <- read_csv("csv/chap04/baseball.csv")
 # - ストレス： Stress
 # - サポート： Support
 # - バーンアウト1： Burnout1
-# - バーンアウト2： Burnout2
+# - バーンアウト2： Burnout2(y)
 
 # ＜分析目的＞
-# - ストレスとバーンアウトの関係はサポートの度合いに影響するかを確認する
+# - ｢ストレス｣と｢バーンアウト｣の関係は｢サポート｣の度合いに影響するかを確認する
 
 #データフレームの確認
 df_sts %>% print()
@@ -67,7 +68,9 @@ df_sts %>% glimpse()
 # 2-1 モデル構築 --------------------------------------------------
 
 # ＜ポイント＞
-# - モデルに説明変数を追加するプロセスにおける説明力の変化に着目する
+# - 交互作用効果の検討は、一般的に階層的重回帰分析を用いて行われる
+#   --- いくつかのステップに分けて重回帰分析を行う方法
+#   --- ステップごとの回帰係数やR2に着目することで、ステップごとの説明力の変化を調べることができる
 
 
 # モデル構築
@@ -75,8 +78,11 @@ df_sts %>% glimpse()
 # --- ステップ2： ステップ1に変数を追加
 model_step1 <- lm(Burnout2 ~ Burnout1, data = df_sts)
 model_step2 <- lm(Burnout2 ~ Burnout1 + Stress + Support, data = df_sts)
+model_step3 <- lm(Burnout2 ~ Burnout1 + Stress, data = df_sts)
 
 # 結果比較
+# --- Stressの回帰係数はプラス（ストレスが大きいほどバーンアウトしやすい）
+# --- R2が0.404⇒0.417と増加している
 list(model_step1 = model_step1, model_step2 = model_step2) %>%
   modelsummary(statistic = "{std.error}({statistic}){stars}")
 
@@ -86,15 +92,17 @@ list(model_step1 = model_step1, model_step2 = model_step2) %>%
 # ＜ポイント＞
 # - 説明変数の追加による決定係数の増分に関する検定を行う
 #   --- 説明変数を追加的に投入すべきかどうかの意義を示す
+#   --- anova()を用いて計算可能（2つ以上のモデルの同時比較も可能）
 
 
 # F値の計算パーツ
+# --- 書籍と誤差あり（小数点の違いにより）
 R2_1 <- model_step1 %>% glance() %>% pull(r.squared)
 R2_2 <- model_step2 %>% glance() %>% pull(r.squared)
 J_1  <- model_step1 %>% tidy() %>% filter(term != "(Intercept)") %>% nrow()
 J_2  <- model_step2 %>% tidy() %>% filter(term != "(Intercept)") %>% nrow()
 N    <- df_sts %>% nrow()
-df1  <- 2
+df1  <- 3 - 1
 df2  <- nrow(df_sts) - 3 - 1
 
 # F値の算出
@@ -108,15 +116,16 @@ f_stat %>% print()
 # --- 検定結果は有意であり、決定係数の増加は0よりも有意に大きいことが示された
 # --- Burnout1が投入されていても、モデル2で新たに変数を追加する意味があることを示唆
 result <- anova(model_step1, model_step2)
-result %>% print()
 result %>% tidy()
+result$F %>% print()
 
 
 # 2-3 AICとBICによるモデル比較 --------------------------------------
 
 # ＜ポイント＞
-# - AICやBICなどの情報量基準は水準が小さいほうが良いことを示す
+# - AICやBICなどの情報量基準は水準が小さいほうが良いモデルであることを示す
 #   --- モデルに変数を追加することをペナルティとしたうえで評価
+#   --- 特にこだわりが無ければAICを使う
 
 # ＜変更点＞
 # - stats::extractAIC()からstats::AIC()に変更
@@ -140,7 +149,7 @@ model_step2 %>% BIC()
 # ＜ポイント＞
 # - 交互作用効果は変数の積をモデルに投入することによって分析する
 #   --- 元の変数との多重共線性を避けるため、中心化して積を算出する
-#   --- 標準化回帰係数の場合はZスコア変換した項の積をとる（積のZスコアではない）
+#   --- 標準化回帰係数の場合はZスコア変換した項の積をとる（交互作用項を算出してからZスコア変換ではない）
 
 
 # データ準備
@@ -150,6 +159,9 @@ df_sts_2 <-
   df_sts %>%
     mutate(Interaction = Stress * Support)
 
+# データ加工
+# --- 変数の中心化
+# --- 交互作用項の追加（元データの積）
 df_sts_2_center <-
   df_sts %>%
     mutate(Stress = Stress - mean(Stress),
@@ -167,7 +179,7 @@ df_sts_2_center %>% select(Stress, Support, Interaction) %>% pairs.panels()
 # --- Interaction効果の検討
 # --- 関数lmによる重回帰分析の実行
 model_base <- lm(Burnout2 ~ Burnout1 + Stress + Support, data = df_sts_2)
-model_interact <- lm(Burnout2 ~ Burnout1 + Stress + Support + Stress * Support, data = df_sts_2_center)
+model_interact <- lm(Burnout2 ~ Burnout1 + Stress + Support + Interaction, data = df_sts_2_center)
 
 # モデルサマリー
 list(model_base = model_base, model_interact = model_interact) %>%
@@ -178,24 +190,29 @@ model_base %>% tidy()
 model_interact %>% tidy()
 
 # 決定係数の増分の検定
+# --- p値が0.01154とであり、決定係数の増分は統計的に有意
 anova(model_base, model_interact) %>% tidy()
 
 # 標準化データの作成
+# --- Zスコアの積を交互作用項とする（変数の積をZスコア変換するのではない）
 df_sts_z <-
   df_sts %>%
     scale() %>%
-    as.data.frame()
+    as.data.frame() %>%
+    mutate(Interaction = Stress * Support)
+
+# データ確認
+df_sts_z %>% head()
 
 # モデル構築
 # --- 標準偏回帰係数の算出
-model_interact_z <- lm(Burnout2 ~ Burnout1 + Stress + Support + Stress * Support, data = df_sts_z)
+model_interact_z <- lm(Burnout2 ~ Burnout1 + Stress + Support + Interaction, data = df_sts_z)
 
 # モデルサマリー
 list(model_base = model_base,
      model_interact = model_interact,
      model_interact_z = model_interact_z) %>%
   modelsummary(statistic = "{std.error}({statistic}){stars}")
-
 
 
 # 4 単純傾斜分析 -----------------------------------------------------------------
@@ -262,7 +279,7 @@ df_bsb %>% print()
 df_bsb %>% glimpse()
 
 # データ可視化
-# --- 全体的に正の相関がある
+# --- 全体的に正の相関がある（全体的に野球選手がどれだけ優れているかを示唆するデータのため）
 df_bsb %>% pairs.panels()
 
 
