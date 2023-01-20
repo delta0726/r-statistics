@@ -29,9 +29,11 @@
 
 # ライブラリ
 library(tidyverse)
+library(magrittr)
 library(ICC)
 library(lmerTest)
 library(psych)
+library(broom)
 
 
 # データロード
@@ -85,6 +87,13 @@ df$Class %>% table()
 
 # 3 級内相関係数の確認 ------------------------------------------------------------
 
+# ＜ポイント＞
+# - 階層性を持つデータでは観測値の独立性が満たされないことを想定（通常の回帰分析では観測値の独立性を前提とする）
+# - グループ内でのデータの類似性を観測する指標としてICCがある（級内相関係数）
+#   --- ICCが大きい程、マルチレベル分析を利用する必要性が高い
+#   --- ICC = (集団の分散) / (集団の分散 + 個人の分散)
+
+
 # 級内相関係数の算出
 ICCest(as.factor(Class), Self_Concept, data = df, alpha = 0.05, CI.type = "Smith")
 
@@ -111,6 +120,7 @@ df_center %>%
   round(3)
 
 # プロット確認
+# --- 散布図行列
 df_center %>%
   select(Test_score_m, Test_score_cwc, Test_score_cgm) %>%
   pairs.panels()
@@ -118,20 +128,73 @@ df_center %>%
 
 # 5 ランダム切片モデル ----------------------------------------------------------
 
+# ＜ポイント＞
+# - 切片がグループごとによって異なり、傾きはグループ間で等しいことを仮定したモデル
+#   --- ICCが大きい程、切片のばらつきが大きくなる
+
+
+# データ確認
+df_center %>% print()
+
 #ランダム切片モデル
 model1.cwc <- lmer(Self_Concept ~ Test_score_cwc + (1 | Class), data = df_center, REML = FALSE)
-summary(model1.cwc)
+
+# サマリー
+model1.cwc %>% summary()
+
+# 回帰係数
+model1.cwc %>% coef()
+
+# 効果
+# --- 固定効果
+# --- ランダム効果
+model1.cwc %>% fixef()
+model1.cwc %>% ranef()
+
+# ランダム切片
+model1.cwc %>% coef() %>% use_series(Class) %>% use_series(`(Intercept)`)
+
+# 手動計算（ランダム切片）
+fixed_effect <- model1.cwc %>% fixef() %>% .[1]
+random_effect <- model1.cwc %>% ranef() %>% use_series(Class) %>% .[,1]
+fixed_effect + random_effect
 
 
 # 6 ランダム傾きモデル -----------------------------------------------------------
 
+# ＜ポイント＞
+# - ランダム傾きモデルは、グループごとに切片に加えて傾きも変化するモデル（切片固定ではない点に注意）
+
+
+# データ確認
+df_center %>% print()
+
 #ランダム傾きモデル
 model2.cwc <- lmer(Self_Concept ~ Test_score_cwc + (1 + Test_score_cwc | Class),
-                   data = df_center,
-                   REML = FALSE)
+                   data = df_center, REML = FALSE)
 
 # サマリー
 model2.cwc %>% summary()
+
+# 回帰係数
+model2.cwc %>% coef()
+
+# 効果
+# --- 固定効果
+# --- ランダム効果
+model2.cwc %>% fixef()
+model2.cwc %>% ranef()
+
+# ランダム切片/ランダム傾き
+total_effect <- model2.cwc %>% coef() %>% use_series(Class)
+
+# 手動計算（ランダム切片）
+fixed_effect <- model2.cwc %>% fixef()
+random_effect <- model2.cwc %>% ranef() %>% use_series(Class)
+total_effect_calc <- t(fixed_effect + t(random_effect))
+
+# 検証
+total_effect - total_effect_calc
 
 
 # 7 集団レベルの変数を含むマルチレベルモデル ------------------------------------------
