@@ -217,6 +217,7 @@ list(model_base = model_base,
 
 # 4 単純傾斜分析 -----------------------------------------------------------------
 
+# データ作成
 df_sts_3 <-
   df_sts %>%
     mutate(Stress.c = Stress - mean(Stress),
@@ -225,16 +226,18 @@ df_sts_3 <-
            Interaction.c = Stress.c * Support.c,
            Burnout1.c = Burnout1 - mean(Burnout1),
            Support.h = Support.c - sd(Support.c),
-           Support.l = Support.c - sd(Support.c)) %>%
-    select(Burnout2, Burnout1.c, Stress.c, Support.h)
+           Support.l = Support.c + sd(Support.c)) %>%
+    select(Burnout2, Burnout1.c, Stress.c, Support.h, Support.l)
 
 
-#単純傾斜分析（ソーシャル・Supportが多い場合のBurnoutに対するStress経験の効果）
-res3.h <- lm(Burnout2 ~ Burnout1.c + Stress.c + Support.h + Stress.c * Support.h, data = df_sts)
+# 単純傾斜分析
+# --- ソーシャル・Supportが多い場合のBurnoutに対するStress経験の効果
+res3.h <- lm(Burnout2 ~ Burnout1.c + Stress.c + Support.h + Stress.c * Support.h, data = df_sts_3)
 summary(res3.h)
 
-#単純傾斜分析（ソーシャル・Supportが少ない場合のBurnoutに対するStress経験の効果）
-res3.l <- lm(Burnout2 ~ Burnout1.c + Stress.c + Support.l + Stress.c * Support.l, data = df_sts)
+# 単純傾斜分析
+# --- ソーシャル・Supportが少ない場合のBurnoutに対するStress経験の効果
+res3.l <- lm(Burnout2 ~ Burnout1.c + Stress.c + Support.l + Stress.c * Support.l, data = df_sts_3)
 summary(res3.l)
 
 #信頼区間の算出
